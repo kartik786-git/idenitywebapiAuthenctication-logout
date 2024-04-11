@@ -12,5 +12,9 @@ namespace BlazorAppSecure.Sevices
 
         public Task<bool> CheckAuthenticatedAsync();
 
+        public Task<FormResult> AddRole(string[] roles);
+
+        public Task<List<Role>> GetRoles();
+
     }
 }

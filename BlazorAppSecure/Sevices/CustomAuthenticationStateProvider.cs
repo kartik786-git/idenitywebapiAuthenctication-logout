@@ -1,5 +1,6 @@
 ﻿using BlazorAppSecure.Model;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Data;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -37,7 +38,7 @@ namespace BlazorAppSecure.Sevices
 
             try
             {
-               var userResponse = await _httpClient.GetAsync("manage/info");
+                var userResponse = await _httpClient.GetAsync("manage/info");
 
                 userResponse.EnsureSuccessStatusCode();
 
@@ -71,7 +72,7 @@ namespace BlazorAppSecure.Sevices
                         }
                     }
 
-                    var id = new ClaimsIdentity(claims,nameof(CustomAuthenticationStateProvider));
+                    var id = new ClaimsIdentity(claims, nameof(CustomAuthenticationStateProvider));
 
                     user = new ClaimsPrincipal(id);
 
@@ -82,7 +83,7 @@ namespace BlazorAppSecure.Sevices
             catch (Exception ex)
             {
 
-               
+
             }
 
             return new AuthenticationState(user);
@@ -96,8 +97,8 @@ namespace BlazorAppSecure.Sevices
             try
             {
 
-              var result = await _httpClient.PostAsJsonAsync("register",
-                    new { email , password });
+                var result = await _httpClient.PostAsJsonAsync("register",
+                      new { email, password });
                 if (result.IsSuccessStatusCode)
                 {
                     return new FormResult { Succeeded = true };
@@ -147,7 +148,7 @@ namespace BlazorAppSecure.Sevices
                         password
                     });
 
-                if(result.IsSuccessStatusCode)
+                if (result.IsSuccessStatusCode)
                 {
                     NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
                     return new FormResult { Succeeded = true };
@@ -180,6 +181,50 @@ namespace BlazorAppSecure.Sevices
         {
             await GetAuthenticationStateAsync();
             return _authenticated;
+        }
+
+        public async Task<FormResult> AddRole(string[] roles)
+        {
+            try
+            {
+                var emptyContent = new StringContent(JsonSerializer.Serialize(roles), Encoding.UTF8, "application/json");
+
+                var result = await _httpClient.PostAsync("api/Role/addRoles", emptyContent);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return new FormResult { Succeeded = true };
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return new FormResult
+            {
+                Succeeded = false,
+                ErrorList = ["api has some issue"]
+            };
+        }
+
+        public async Task<List<Role>> GetRoles()
+        {
+            try
+            {
+                var result = await _httpClient.GetAsync("api/Role/GetRoles");
+
+                var userJson = await result.Content.ReadAsStringAsync();
+                var userInfo = JsonSerializer.Deserialize<List<Role>>(userJson, jsonSerializerOptions);
+                if (result.IsSuccessStatusCode)
+                {
+                    return userInfo;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return new List<Role>();
         }
     }
 }
